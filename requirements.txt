@@ -2,3 +2,4 @@ streamlit
 opencv-python
 tensorflow
 numpy
+opencv-python-headless
