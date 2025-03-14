@@ -1,22 +1,43 @@
 import streamlit as st
+import base64
 import cv2
 import numpy as np
-from camera import get_frame
-from predictor import predict_sign
-from utils import preprocess_image
+from predictor import predict_sign  # Your ML model
 
-st.title("Hand Sign Language Translator")
+# Load JavaScript for the camera
+st.markdown("""
+    <script src="/static/camera.js"></script>
+""", unsafe_allow_html=True)
 
-# Start webcam
-FRAME_WINDOW = st.image([])
-st.write("Show a sign to the camera.")
+# HTML for camera stream
+st.markdown("""
+    <video id="video" autoplay playsinline style="width:100%;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <button onclick="captureFrame()">📸 Capture Frame</button>
+""", unsafe_allow_html=True)
 
-while True:
-    frame = get_frame()
-    if frame is not None:
-        processed_frame = preprocess_image(frame)
-        FRAME_WINDOW.image(processed_frame, channels="RGB")
-        
-        # Predict sign
-        sign = predict_sign(processed_frame)
-        st.write(f"Predicted Sign: {sign}")
+# Handle incoming frames from JavaScript
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route("/upload_frame", methods=["POST"])
+def upload_frame():
+    data = request.json
+    image_data = data.get("image", "")
+
+    if not image_data:
+        return jsonify({"error": "No image received"}), 400
+
+    # Decode base64 image
+    image_bytes = base64.b64decode(image_data.split(",")[1])
+    np_arr = np.frombuffer(image_bytes, np.uint8)
+    frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+    # Predict sign language gesture
+    result = predict_sign(frame)
+
+    return jsonify({"prediction": result})
+
+if __name__ == "__main__":
+    app.run(debug=True)
