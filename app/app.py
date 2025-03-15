@@ -14,8 +14,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 def process_image(image_data):
     """Convert base64 image to numpy array and process it."""
     try:
-        if not image_data or "," not in image_data:
-            st.error("❌ No valid image data received!")
+        if not isinstance(image_data, str) or "," not in image_data:
+            st.error("❌ Invalid image data received!")
             return None
 
         # Decode Base64 Image
@@ -35,9 +35,9 @@ def process_image(image_data):
 def convert_base64_to_image(image_data):
     """Convert base64 string to PIL Image for Streamlit display."""
     try:
-        if not image_data or "," not in image_data:
+        if not isinstance(image_data, str) or "," not in image_data:
             return None
-        
+
         image_bytes = base64.b64decode(image_data.split(',')[1])
         return Image.open(io.BytesIO(image_bytes))
     except Exception as e:
@@ -46,40 +46,41 @@ def convert_base64_to_image(image_data):
 def main():
     st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
     st.title("🤟 Hand Sign Language Translator")
-    st.write("Show a hand sign to the camera, then press 'Capture Image' and 'Translate' to see the result.")
+    st.write("Show a hand sign to the camera, capture an image, and translate it.")
 
     # Initialize session state variables
     if "captured_image" not in st.session_state:
         st.session_state.captured_image = None
-    if "predicted_letter" not in st.session_state:
-        st.session_state.predicted_letter = ""
 
-    # Display Camera Component
+    # Camera Component
     image_data = camera_input()
 
-    # Capture Image Button
+    # Ensure image_data is correctly returned
+    if not isinstance(image_data, str):
+        st.warning("⚠️ Camera input not returning valid image data.")
+
+    # Capture button
     if st.button("Capture Image"):
-        if image_data and "," in image_data:
-            st.session_state.captured_image = image_data  # Store image in session state
+        if isinstance(image_data, str) and "," in image_data:
+            st.session_state.captured_image = image_data  # Store captured image
             image_display = convert_base64_to_image(image_data)  # Convert for display
-            
+
             if image_display:
                 st.image(image_display, caption="📸 Captured Image", use_container_width=True)
             else:
                 st.error("❌ Failed to convert image for display.")
         else:
-            st.error("❌ No image captured! Please try again.")
+            st.error("❌ No valid image captured! Please try again.")
 
-    # Translate Button (Only Appears After Capturing an Image)
+    # Translate button
     if st.session_state.captured_image:
         if st.button("Translate Sign"):
-            st.write("🔄 Processing...")
             processed_image = process_image(st.session_state.captured_image)
-
             if processed_image is not None:
-                prediction = predict_sign(processed_image)
-                st.session_state.predicted_letter = prediction
-                st.subheader(f"🔠 **Predicted Sign: {prediction}**")
+                prediction = predict_sign(processed_image)  # Get prediction
+                st.subheader(f"🔠 Predicted Sign: **{prediction}**")
+            else:
+                st.error("❌ Unable to process image for translation.")
 
 if __name__ == "__main__":
     main()
