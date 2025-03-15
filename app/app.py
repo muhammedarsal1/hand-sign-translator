@@ -1,43 +1,32 @@
-import streamlit.components.v1 as components
+import streamlit as st
+import numpy as np
+import cv2
+import base64
+from predictor import predict_sign
+from camera_component import camera_input
 
-def camera_input():
-    camera_html = """
-    <script>
-        let video = document.createElement('video');
-        let canvas = document.createElement('canvas');
-        let context = canvas.getContext('2d');
-        let captureButton = document.createElement('button');
-        let capturedImage = document.createElement('img');
+def process_image(image_data):
+    """Convert base64 image to numpy array and process it."""
+    image_bytes = base64.b64decode(image_data.split(',')[1])
+    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    return image
 
-        video.setAttribute('autoplay', '');
-        video.setAttribute('playsinline', '');
-        video.style.width = '100%';
-        video.style.height = 'auto';
+def main():
+    st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
+    st.title("🤟 Hand Sign Language Translator")
+    st.write("Show a hand sign to the camera, and the app will translate it.")
+    
+    # Camera Component
+    image_data = camera_input()
+    
+    if image_data:
+        st.image(image_data, caption="Captured Image", use_column_width=True)
+        processed_image = process_image(image_data)
+        
+        # Predict the hand sign
+        prediction = predict_sign(processed_image)
+        st.subheader(f"Predicted Sign: {prediction}")
 
-        captureButton.innerText = 'Capture Image';
-        captureButton.onclick = function() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedImage.src = canvas.toDataURL('image/png');
-            document.getElementById('captured-container').innerHTML = '';
-            document.getElementById('captured-container').appendChild(capturedImage);
-        };
-
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-                document.getElementById('camera-container').appendChild(video);
-                document.getElementById('camera-container').appendChild(captureButton);
-            })
-            .catch(error => {
-                console.error("Camera not accessible:", error);
-                document.getElementById("camera-container").innerText = "🚨 Camera not accessible. Please enable camera permissions.";
-            });
-    </script>
-    <div id="camera-container"></div>
-    <div id="captured-container"></div>
-    """
-    components.html(camera_html, height=400)
-
-    return None
+if __name__ == "__main__":
+    main()
