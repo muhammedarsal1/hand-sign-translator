@@ -3,10 +3,11 @@ import streamlit as st
 import numpy as np
 import cv2
 import base64
-import io
-from PIL import Image
+import tensorflow as tf
 from predictor import predict_sign
-from camera_component import camera_input
+from camera_component import camera_input  # ✅ Correct import, works now
+from PIL import Image
+
 
 # ✅ Ensure set_page_config is the first Streamlit command
 st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
