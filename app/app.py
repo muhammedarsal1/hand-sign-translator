@@ -3,10 +3,10 @@ import streamlit as st
 import numpy as np
 import cv2
 import base64
+import io
+from PIL import Image
 from predictor import predict_sign
 from camera_component import camera_input
-from PIL import Image
-import io
 
 # Force TensorFlow to use CPU (Fixes CUDA error)
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -14,8 +14,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 def process_image(image_data):
     """Convert base64 image to numpy array and process it."""
     try:
-        if not image_data:
-            st.error("❌ No image data received!")
+        if not image_data or "," not in image_data:
+            st.error("❌ No valid image data received!")
             return None
 
         # Decode Base64 Image
@@ -35,10 +35,12 @@ def process_image(image_data):
 def convert_base64_to_image(image_data):
     """Convert base64 string to PIL Image for Streamlit display."""
     try:
+        if not image_data or "," not in image_data:
+            return None
+        
         image_bytes = base64.b64decode(image_data.split(',')[1])
         return Image.open(io.BytesIO(image_bytes))
     except Exception as e:
-        st.error(f"❌ Failed to convert image: {e}")
         return None
 
 def main():
@@ -57,11 +59,14 @@ def main():
 
     # Capture Image Button
     if st.button("Capture Image"):
-        if image_data:
+        if image_data and "," in image_data:
             st.session_state.captured_image = image_data  # Store image in session state
             image_display = convert_base64_to_image(image_data)  # Convert for display
+            
             if image_display:
                 st.image(image_display, caption="📸 Captured Image", use_container_width=True)
+            else:
+                st.error("❌ Failed to convert image for display.")
         else:
             st.error("❌ No image captured! Please try again.")
 
