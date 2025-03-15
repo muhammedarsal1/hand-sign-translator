@@ -21,8 +21,8 @@ def camera_input():
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imageData = canvas.toDataURL('image/png');
 
-            // Send image data to Streamlit
-            window.parent.postMessage(imageData, "*");
+            // Send image data to Streamlit using postMessage
+            window.parent.postMessage({ type: "image", data: imageData }, "*");
 
             // Show captured image
             capturedImage.src = imageData;
