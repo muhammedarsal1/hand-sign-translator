@@ -21,9 +21,13 @@ if "captured_image" not in st.session_state:
 def process_image(image_data):
     """Convert base64 image to numpy array and preprocess for the model."""
     try:
+        if not isinstance(image_data, str) or "," not in image_data:
+            st.error("❌ Invalid image data received!")
+            return None
+
         image_bytes = base64.b64decode(image_data.split(',')[1])
         image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-        image = cv2.imdecode(image_array, cv2.IMREAD_GRAYSCALE)  # ✅ Ensure grayscale format
+        image = cv2.imdecode(image_array, cv2.IMREAD_GRAYSCALE)  # ✅ Convert to grayscale
         image = cv2.resize(image, (64, 64))  # ✅ Resize to match model input size
         image = image / 255.0  # ✅ Normalize pixel values
         image = np.expand_dims(image, axis=-1)  # ✅ Add channel dimension for model
@@ -36,16 +40,14 @@ def main():
     st.title("🤟 Hand Sign Language Translator")
     st.write("Show a hand sign to the camera, capture an image, and press 'Translate'.")
 
-    # Camera Input
+    # ✅ Get image data from JavaScript
     image_data = camera_input()
 
-    # ✅ Capture button
-    if st.button("📸 Capture Image"):
-        if image_data and "," in image_data:
-            st.session_state.captured_image = image_data
-            st.image(image_data, caption="📸 Captured Image", use_container_width=True)
-        else:
-            st.error("❌ No valid image captured! Please try again.")
+    if image_data and isinstance(image_data, str) and "," in image_data:
+        st.session_state.captured_image = image_data
+        st.image(image_data, caption="📸 Captured Image", use_container_width=True)
+    else:
+        st.warning("⚠️ No image captured yet. Please take a picture.")
 
     # ✅ Translate button
     if st.session_state.captured_image:

@@ -30,7 +30,7 @@ def camera_input():
             hiddenInput.value = imageData;
 
             // ✅ Send image data to Streamlit
-            window.parent.postMessage(imageData, "*");
+            window.parent.postMessage({ type: "image", data: imageData }, "*");
 
             // ✅ Display captured image
             capturedImage.src = imageData;
@@ -39,7 +39,7 @@ def camera_input():
         };
 
         translateButton.onclick = function() {
-            window.parent.postMessage(hiddenInput.value, "*");
+            window.parent.postMessage({ type: "image", data: hiddenInput.value }, "*");
         };
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
