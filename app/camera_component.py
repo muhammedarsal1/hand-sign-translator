@@ -7,7 +7,6 @@ def camera_input():
         let canvas = document.createElement('canvas');
         let context = canvas.getContext('2d');
         let captureButton = document.createElement('button');
-        let capturedImage = document.createElement('img');
         let hiddenInput = document.createElement('input');
 
         video.setAttribute('autoplay', '');
@@ -25,11 +24,8 @@ def camera_input():
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imageData = canvas.toDataURL('image/png');
-            capturedImage.src = imageData;
             hiddenInput.value = imageData;
-            document.getElementById('captured-container').innerHTML = '';
-            document.getElementById('captured-container').appendChild(capturedImage);
-            document.getElementById('captured-container').appendChild(hiddenInput);
+            window.parent.postMessage(imageData, "*");
         };
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -42,8 +38,9 @@ def camera_input():
                 console.error("Camera not accessible:", error);
                 document.getElementById("camera-container").innerText = "🚨 Camera not accessible. Please enable camera permissions.";
             });
+
+        document.body.appendChild(hiddenInput);
     </script>
     <div id="camera-container"></div>
-    <div id="captured-container"></div>
     """
     return components.html(camera_html, height=400)

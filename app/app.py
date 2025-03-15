@@ -55,10 +55,6 @@ def main():
     # Camera Component
     image_data = camera_input()
 
-    # Ensure image_data is correctly returned
-    if not isinstance(image_data, str):
-        st.warning("⚠️ Camera input not returning valid image data.")
-
     # Capture button
     if st.button("Capture Image"):
         if isinstance(image_data, str) and "," in image_data:
