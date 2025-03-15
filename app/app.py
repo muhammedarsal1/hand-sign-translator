@@ -8,14 +8,15 @@ from PIL import Image
 from predictor import predict_sign
 from camera_component import camera_input
 
-# 🚀 Ensure set_page_config is the first Streamlit command
+# ✅ Ensure set_page_config is the first Streamlit command
 st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
 
-# 🚀 Force TensorFlow to use CPU (Fixes CUDA error)
+# ✅ Force TensorFlow to use CPU (Fixes CUDA error)
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-# 🚀 Listen for images sent from JavaScript
-image_data = st.query_params.get("image", [None])[0]  # ✅ Replaces deprecated function
+# ✅ Initialize session state for storing image data
+if "captured_image" not in st.session_state:
+    st.session_state.captured_image = None
 
 def process_image(image_data):
     """Convert base64 image to numpy array and process it."""
@@ -53,18 +54,17 @@ def main():
     st.title("🤟 Hand Sign Language Translator")
     st.write("Show a hand sign to the camera, capture an image, and translate it.")
 
-    # Initialize session state variables
-    if "captured_image" not in st.session_state:
-        st.session_state.captured_image = None
-
-    # Camera Component
+    # ✅ Load Camera Component
     camera_input()
 
-    # Capture button
+    # ✅ Capture button
     if st.button("📸 Capture Image"):
+        # ✅ Retrieve image from JavaScript session storage
+        image_data = st.query_params.get("image", [None])[0]
+
         if isinstance(image_data, str) and "," in image_data:
-            st.session_state.captured_image = image_data  # Store captured image
-            image_display = convert_base64_to_image(image_data)  # Convert for display
+            st.session_state.captured_image = image_data  # ✅ Store captured image
+            image_display = convert_base64_to_image(image_data)  # ✅ Convert for display
 
             if image_display:
                 st.image(image_display, caption="📸 Captured Image", use_container_width=True)
@@ -73,12 +73,12 @@ def main():
         else:
             st.error("❌ No valid image captured! Please try again.")
 
-    # Translate button
+    # ✅ Translate button
     if st.session_state.captured_image:
         if st.button("🔠 Translate Sign"):
             processed_image = process_image(st.session_state.captured_image)
             if processed_image is not None:
-                prediction = predict_sign(processed_image)  # Get prediction
+                prediction = predict_sign(processed_image)  # ✅ Get prediction
                 st.subheader(f"🔠 Predicted Sign: **{prediction}**")
             else:
                 st.error("❌ Unable to process image for translation.")

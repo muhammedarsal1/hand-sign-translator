@@ -1,7 +1,7 @@
 import streamlit.components.v1 as components
 
 def camera_input():
-    """Camera input component using JavaScript"""
+    """Camera input component using JavaScript to send images to Streamlit"""
     camera_html = """
     <script>
         let video = document.createElement('video');
@@ -9,7 +9,6 @@ def camera_input():
         let context = canvas.getContext('2d');
         let captureButton = document.createElement('button');
         let capturedImage = document.createElement('img');
-        let hiddenInput = document.createElement('input');
 
         video.setAttribute('autoplay', '');
         video.setAttribute('playsinline', '');
@@ -17,23 +16,16 @@ def camera_input():
         video.style.height = 'auto';
 
         captureButton.innerText = 'Capture Image';
-        hiddenInput.type = 'text';
-        hiddenInput.id = 'capturedImageData';
-        hiddenInput.style.display = 'none';
-
         captureButton.onclick = function() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imageData = canvas.toDataURL('image/png');
 
-            // Store the image in hidden input
-            hiddenInput.value = imageData;
+            // ✅ Send image data to Streamlit using sessionStorage
+            sessionStorage.setItem('capturedImage', imageData);
 
-            // Send image data to Streamlit
-            window.parent.postMessage({ type: "image", data: imageData }, "*");
-
-            // Show the captured image
+            // ✅ Display captured image
             capturedImage.src = imageData;
             document.getElementById('captured-container').innerHTML = '';
             document.getElementById('captured-container').appendChild(capturedImage);
@@ -44,10 +36,9 @@ def camera_input():
                 video.srcObject = stream;
                 document.getElementById('camera-container').appendChild(video);
                 document.getElementById('camera-container').appendChild(captureButton);
-                document.getElementById('camera-container').appendChild(hiddenInput);
             })
             .catch(error => {
-                console.error("Camera not accessible:", error);
+                console.error("🚨 Camera not accessible:", error);
                 document.getElementById("camera-container").innerText = "🚨 Camera not accessible. Please enable camera permissions.";
             });
 
