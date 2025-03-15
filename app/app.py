@@ -12,10 +12,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 def process_image(image_data):
     """Convert base64 image to numpy array and process it."""
     try:
-        if not image_data:
-            st.error("❌ No image data received!")
-            return None
-
         image_bytes = base64.b64decode(image_data.split(',')[1])
         image_array = np.frombuffer(image_bytes, dtype=np.uint8)
         image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
@@ -44,13 +40,16 @@ def main():
     st.write("📷 **Camera Feed:**")
     image_data = camera_input()  # Show camera input
 
+    # Always show the Translate button
+    translate_button = st.button("Translate Sign")
+
     if image_data:
         st.session_state.captured_image = image_data  # Store captured image
         st.image(image_data, caption="📸 Captured Image", use_column_width=True)
 
-    # Show Translate button only if an image is captured
-    if st.session_state.captured_image:
-        if st.button("Translate Sign"):
+    # Process and translate only when button is pressed
+    if translate_button:
+        if st.session_state.captured_image:
             st.write("🔄 Processing...")  # Show loading message
             processed_image = process_image(st.session_state.captured_image)
 
@@ -58,7 +57,8 @@ def main():
                 prediction = predict_sign(processed_image)
                 st.session_state.predicted_letter = prediction
                 st.subheader(f"🔠 Predicted Sign: **{prediction}**")  # Show result
-                print("Predicted Sign:", prediction)  # Debugging output
+        else:
+            st.error("❌ No image captured! Please take a picture first.")
 
 if __name__ == "__main__":
     main()
