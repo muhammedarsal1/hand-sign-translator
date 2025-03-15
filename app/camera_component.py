@@ -10,7 +10,6 @@ def camera_input():
         let captureButton = document.createElement('button');
         let translateButton = document.createElement('button');
         let capturedImage = document.createElement('img');
-        let hiddenInput = document.createElement('input');
 
         video.setAttribute('autoplay', '');
         video.setAttribute('playsinline', '');
@@ -26,8 +25,8 @@ def camera_input():
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imageData = canvas.toDataURL('image/png');
 
-            // ✅ Store image in hidden input
-            hiddenInput.value = imageData;
+            // ✅ Store image in sessionStorage (fixes missing image issue)
+            sessionStorage.setItem('capturedImage', imageData);
 
             // ✅ Send image data to Streamlit
             window.parent.postMessage({ type: "image", data: imageData }, "*");
@@ -39,7 +38,12 @@ def camera_input():
         };
 
         translateButton.onclick = function() {
-            window.parent.postMessage({ type: "image", data: hiddenInput.value }, "*");
+            let storedImage = sessionStorage.getItem('capturedImage');
+            if (storedImage) {
+                window.parent.postMessage({ type: "image", data: storedImage }, "*");
+            } else {
+                alert("⚠️ No image captured yet. Please take a picture first.");
+            }
         };
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
