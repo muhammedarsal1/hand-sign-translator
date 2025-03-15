@@ -8,11 +8,14 @@ from PIL import Image
 from predictor import predict_sign
 from camera_component import camera_input
 
-# Force TensorFlow to use CPU (Fixes CUDA error)
+# 🚀 Ensure set_page_config is the first Streamlit command
+st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
+
+# 🚀 Force TensorFlow to use CPU (Fixes CUDA error)
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-# Listen for images sent from JavaScript
-image_data = st.experimental_get_query_params().get("image", [None])[0]
+# 🚀 Listen for images sent from JavaScript
+image_data = st.query_params.get("image", [None])[0]  # ✅ Replaces deprecated function
 
 def process_image(image_data):
     """Convert base64 image to numpy array and process it."""
@@ -47,7 +50,6 @@ def convert_base64_to_image(image_data):
         return None
 
 def main():
-    st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
     st.title("🤟 Hand Sign Language Translator")
     st.write("Show a hand sign to the camera, capture an image, and translate it.")
 
@@ -59,7 +61,7 @@ def main():
     camera_input()
 
     # Capture button
-    if st.button("Capture Image"):
+    if st.button("📸 Capture Image"):
         if isinstance(image_data, str) and "," in image_data:
             st.session_state.captured_image = image_data  # Store captured image
             image_display = convert_base64_to_image(image_data)  # Convert for display
@@ -73,7 +75,7 @@ def main():
 
     # Translate button
     if st.session_state.captured_image:
-        if st.button("Translate Sign"):
+        if st.button("🔠 Translate Sign"):
             processed_image = process_image(st.session_state.captured_image)
             if processed_image is not None:
                 prediction = predict_sign(processed_image)  # Get prediction
