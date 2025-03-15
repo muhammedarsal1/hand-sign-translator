@@ -1,24 +1,43 @@
-import streamlit as st
-import numpy as np
-from predictor import predict_sign
-from camera_component import camera_input
+import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
+def camera_input():
+    camera_html = """
+    <script>
+        let video = document.createElement('video');
+        let canvas = document.createElement('canvas');
+        let context = canvas.getContext('2d');
+        let captureButton = document.createElement('button');
+        let capturedImage = document.createElement('img');
 
-# Title
-st.title("🤟 Hand Sign Language Translator")
-st.write("Show a hand sign to the camera, and the app will translate it.")
+        video.setAttribute('autoplay', '');
+        video.setAttribute('playsinline', '');
+        video.style.width = '100%';
+        video.style.height = 'auto';
 
-# Camera Input
-st.subheader("📷 Camera Feed")
-camera_input()
+        captureButton.innerText = 'Capture Image';
+        captureButton.onclick = function() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            capturedImage.src = canvas.toDataURL('image/png');
+            document.getElementById('captured-container').innerHTML = '';
+            document.getElementById('captured-container').appendChild(capturedImage);
+        };
 
-# Placeholder for the translated text
-prediction_text = st.empty()
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                document.getElementById('camera-container').appendChild(video);
+                document.getElementById('camera-container').appendChild(captureButton);
+            })
+            .catch(error => {
+                console.error("Camera not accessible:", error);
+                document.getElementById("camera-container").innerText = "🚨 Camera not accessible. Please enable camera permissions.";
+            });
+    </script>
+    <div id="camera-container"></div>
+    <div id="captured-container"></div>
+    """
+    components.html(camera_html, height=400)
 
-# Process the prediction (Placeholder logic)
-if st.button("Translate Sign"):
-    st.warning("Processing image... (This feature needs backend integration)")
-    # Ideally, we should capture an image from the camera and send it to `predict_sign()`
-    # Here, we just simulate the output.
-    prediction_text.success(f"Predicted Sign: {np.random.choice(['A', 'B', 'C', 'D'])}")  
+    return None
