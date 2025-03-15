@@ -57,12 +57,8 @@ def main():
             if processed_image is not None:
                 prediction = predict_sign(processed_image)
                 st.session_state.predicted_letter = prediction
-                st.write(f"✅ **Predicted Sign: {prediction}**")  # Show result
+                st.subheader(f"🔠 Predicted Sign: **{prediction}**")  # Show result
                 print("Predicted Sign:", prediction)  # Debugging output
-
-    # Display translated letter **below** the camera feed
-    if st.session_state.predicted_letter:
-        st.subheader(f"🔠 Predicted Sign: **{st.session_state.predicted_letter}**")
 
 if __name__ == "__main__":
     main()
