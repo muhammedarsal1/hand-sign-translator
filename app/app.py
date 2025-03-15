@@ -17,9 +17,11 @@ def main():
     st.title("🤟 Hand Sign Language Translator")
     st.write("Show a hand sign to the camera, then press 'Translate' to see the result.")
 
-    # Initialize session state for image storage
+    # Initialize session state for storing the image and prediction
     if "captured_image" not in st.session_state:
         st.session_state.captured_image = None
+    if "predicted_letter" not in st.session_state:
+        st.session_state.predicted_letter = ""
 
     # Camera Component
     image_data = camera_input()
@@ -32,11 +34,11 @@ def main():
     if st.session_state.captured_image:
         if st.button("Translate Sign"):
             processed_image = process_image(st.session_state.captured_image)
-            prediction = predict_sign(processed_image)  # Get prediction
-            
-            # Debugging: Print the predicted output
-            print("Predicted Label:", prediction)
-            st.subheader(f"🔠 Predicted Sign: **{prediction}**")
+            st.session_state.predicted_letter = predict_sign(processed_image)  # Store prediction
+
+    # Display the predicted letter **below** the camera
+    if st.session_state.predicted_letter:
+        st.subheader(f"🔠 Predicted Sign: **{st.session_state.predicted_letter}**")
 
 if __name__ == "__main__":
     main()
