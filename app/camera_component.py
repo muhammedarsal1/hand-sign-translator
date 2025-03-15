@@ -7,7 +7,7 @@ def camera_input():
         let canvas = document.createElement('canvas');
         let context = canvas.getContext('2d');
         let captureButton = document.createElement('button');
-        let hiddenInput = document.createElement('input');
+        let capturedImage = document.createElement('img');
 
         video.setAttribute('autoplay', '');
         video.setAttribute('playsinline', '');
@@ -15,17 +15,19 @@ def camera_input():
         video.style.height = 'auto';
 
         captureButton.innerText = 'Capture Image';
-        hiddenInput.type = 'text';
-        hiddenInput.id = 'capturedImageData';
-        hiddenInput.style.display = 'none';
-
         captureButton.onclick = function() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imageData = canvas.toDataURL('image/png');
-            hiddenInput.value = imageData;
+
+            // Send image data to Streamlit
             window.parent.postMessage(imageData, "*");
+
+            // Show captured image
+            capturedImage.src = imageData;
+            document.getElementById('captured-container').innerHTML = '';
+            document.getElementById('captured-container').appendChild(capturedImage);
         };
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -39,8 +41,9 @@ def camera_input():
                 document.getElementById("camera-container").innerText = "🚨 Camera not accessible. Please enable camera permissions.";
             });
 
-        document.body.appendChild(hiddenInput);
+        document.body.appendChild(capturedImage);
     </script>
     <div id="camera-container"></div>
+    <div id="captured-container"></div>
     """
     return components.html(camera_html, height=400)
