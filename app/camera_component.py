@@ -24,7 +24,7 @@ def camera_input():
             document.getElementById('captured-container').appendChild(capturedImage);
         };
 
-        navigator.mediaDevices.getUserMedia({ video: true })
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => {
                 video.srcObject = stream;
                 document.getElementById('camera-container').appendChild(video);
