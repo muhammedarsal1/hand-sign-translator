@@ -16,17 +16,20 @@ def main():
     st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
     st.title("🤟 Hand Sign Language Translator")
     st.write("Show a hand sign to the camera, and the app will translate it.")
-    
-    # Camera Component
+
+    # Camera Component (captures an image and returns base64 data)
     image_data = camera_input()
-    
+
     if image_data:
-        st.image(image_data, caption="Captured Image", use_column_width=True)
-        processed_image = process_image(image_data)
-        
-        # Predict the hand sign
-        prediction = predict_sign(processed_image)
-        st.subheader(f"Predicted Sign: {prediction}")
+        st.image(image_data, caption="📸 Captured Image", use_column_width=True)
+
+        # Add a Translate button
+        if st.button("Translate Sign"):
+            processed_image = process_image(image_data)
+            
+            # Predict the hand sign
+            prediction = predict_sign(processed_image)
+            st.subheader(f"🔠 Predicted Sign: **{prediction}**")
 
 if __name__ == "__main__":
     main()
