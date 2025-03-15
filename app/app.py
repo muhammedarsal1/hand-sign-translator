@@ -21,9 +21,11 @@ def main():
     st.title("🤟 Hand Sign Language Translator")
     st.write("Show a hand sign to the camera, then press 'Translate' to see the result.")
 
-    # Initialize session state for image storage
+    # Initialize session state variables
     if "captured_image" not in st.session_state:
         st.session_state.captured_image = None
+    if "prediction" not in st.session_state:
+        st.session_state.prediction = None
 
     # Camera Component
     image_data = camera_input()
@@ -35,17 +37,17 @@ def main():
     # Show Translate button only if an image is captured
     if st.session_state.captured_image:
         if st.button("Translate Sign"):
-            st.write("🔄 Processing image...")  # Show processing message
             processed_image = process_image(st.session_state.captured_image)
 
             if processed_image is not None:
                 prediction = predict_sign(processed_image)  # Get prediction
-                if prediction:
-                    st.subheader(f"🔠 Predicted Sign: **{prediction}**")
-                else:
-                    st.error("❌ Unable to recognize the sign. Please try again.")
+                st.session_state.prediction = prediction
             else:
-                st.error("❌ Image processing failed. Capture a new image.")
+                st.session_state.prediction = "Error: Could not process image."
+
+    # Display the predicted sign below the camera section
+    if st.session_state.prediction:
+        st.subheader(f"🔠 Predicted Sign: **{st.session_state.prediction}**")
 
 if __name__ == "__main__":
     main()
