@@ -16,6 +16,7 @@ def process_image(image_data):
             st.error("❌ No image data received!")
             return None
 
+        # Decode Base64 Image
         image_bytes = base64.b64decode(image_data.split(',')[1])
         image_array = np.frombuffer(image_bytes, dtype=np.uint8)
         image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
@@ -34,36 +35,34 @@ def main():
     st.title("🤟 Hand Sign Language Translator")
     st.write("Show a hand sign to the camera, then press 'Translate' to see the result.")
 
-    # Initialize session state
+    # Initialize session state variables
     if "captured_image" not in st.session_state:
         st.session_state.captured_image = None
     if "predicted_letter" not in st.session_state:
         st.session_state.predicted_letter = ""
 
-    # Camera Component
+    # Camera Component (Capturing Image)
     st.write("📷 **Camera Feed:**")
     image_data = camera_input()  # Show camera input
 
-    # **Fix: Ensure image is saved when captured**
+    # **Fix: Ensure image is saved in session state when captured**
     if image_data:
         st.session_state.captured_image = image_data  # Store captured image
         st.image(image_data, caption="📸 Captured Image", use_column_width=True)
 
     # Show Translate button **only if image is captured**
-    translate_button = st.button("Translate Sign")
-
-    if translate_button:
-        if st.session_state.captured_image:
+    if st.session_state.captured_image:
+        if st.button("Translate Sign"):
             st.write("🔄 Processing...")  # Show loading message
             processed_image = process_image(st.session_state.captured_image)
 
             if processed_image is not None:
-                prediction = predict_sign(processed_image)
-                st.session_state.predicted_letter = prediction
-                st.subheader(f"🔠 Predicted Sign: **{prediction}**")  # Show result
-                print(f"✅ Predicted Sign: {prediction}")  # Debugging output
-        else:
-            st.error("❌ No image captured! Please take a picture first.")
+                prediction = predict_sign(processed_image)  # Predict hand sign
+                st.session_state.predicted_letter = prediction  # Store prediction in session state
+
+    # Display Translation Below Camera **(Fix UI)**
+    if st.session_state.predicted_letter:
+        st.subheader(f"🔠 **Predicted Sign: {st.session_state.predicted_letter}**")
 
 if __name__ == "__main__":
     main()
