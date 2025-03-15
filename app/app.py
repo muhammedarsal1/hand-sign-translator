@@ -5,8 +5,10 @@ import cv2
 import base64
 from predictor import predict_sign
 from camera_component import camera_input
+from PIL import Image
+import io
 
-# Force TensorFlow to use CPU
+# Force TensorFlow to use CPU (Fixes CUDA error)
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 def process_image(image_data):
@@ -30,6 +32,15 @@ def process_image(image_data):
         st.error(f"❌ Error processing image: {e}")
         return None
 
+def convert_base64_to_image(image_data):
+    """Convert base64 string to PIL Image for Streamlit display."""
+    try:
+        image_bytes = base64.b64decode(image_data.split(',')[1])
+        return Image.open(io.BytesIO(image_bytes))
+    except Exception as e:
+        st.error(f"❌ Failed to convert image: {e}")
+        return None
+
 def main():
     st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
     st.title("🤟 Hand Sign Language Translator")
@@ -48,7 +59,9 @@ def main():
     if st.button("Capture Image"):
         if image_data:
             st.session_state.captured_image = image_data  # Store image in session state
-            st.image(image_data, caption="📸 Captured Image", use_column_width=True)
+            image_display = convert_base64_to_image(image_data)  # Convert for display
+            if image_display:
+                st.image(image_display, caption="📸 Captured Image", use_container_width=True)
         else:
             st.error("❌ No image captured! Please try again.")
 
