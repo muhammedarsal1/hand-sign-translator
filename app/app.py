@@ -1,42 +1,33 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Disable GPU to avoid CUDA errors
+
 import streamlit as st
+import tensorflow as tf
 import numpy as np
-import cv2
-import base64
+from PIL import Image
 from predictor import predict_sign
 from camera_component import camera_input
 
-def process_image(image_data):
-    """Convert base64 image to numpy array and process it."""
-    try:
-        image_bytes = base64.b64decode(image_data.split(',')[1])
-        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-        return image
-    except Exception as e:
-        st.error(f"Error processing image: {e}")
-        return None
+# Load model and labels
+model = tf.keras.models.load_model("model/sign_model.h5")
+with open("model/labels.json", "r") as f:
+    labels = {int(k): v for k, v in json.load(f).items()}
 
-def main():
-    st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
-    st.title("🤟 Hand Sign Language Translator")
-    st.write("Show a hand sign to the camera, then press 'Translate' to see the result.")
+st.title("Hand Sign Language Translator")
+st.write("Upload an image or use the webcam to detect hand signs.")
 
-    # Initialize session state for image storage
-    if "captured_image" not in st.session_state:
-        st.session_state.captured_image = None
-    if "prediction" not in st.session_state:
-        st.session_state.prediction = None
+# Camera input
+image = camera_input()
 
-    # Capture Image
-    image_data = camera_input()
+if image is not None:
+    st.image(image, caption="Captured Image", use_column_width=True)
+    label, confidence = predict_sign(image, model, labels)
+    st.write(f"Prediction: {label} (Confidence: {confidence:.2f}%)")
 
-    if image_data:
-        st.session_state.captured_image = image_data  # Store captured image
-        st.image(image_data, caption="📸 Captured Image", use_column_width=True)
-
-    # Show Translate button only if an image is captured
-    if st.session_state.captured_image:
-        if st.button("Translate Sign"):
-            processed_image = process_image(st.session_state.captured_image)
-            if processed_image is not None:
-                st.session_state.prediction = predict_sign(processed_image)  # Sto
+# File uploader option
+uploaded_file = st.file_uploader("Or upload an image", type=["png", "jpg", "jpeg"])
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+    label, confidence = predict_sign(image, model, labels)
+    st.write(f"Prediction: {label} (Confidence: {confidence:.2f}%)")
