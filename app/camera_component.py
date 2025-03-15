@@ -8,6 +8,7 @@ def camera_input():
         let context = canvas.getContext('2d');
         let captureButton = document.createElement('button');
         let capturedImage = document.createElement('img');
+        let hiddenInput = document.createElement('input');
 
         video.setAttribute('autoplay', '');
         video.setAttribute('playsinline', '');
@@ -15,13 +16,20 @@ def camera_input():
         video.style.height = 'auto';
 
         captureButton.innerText = 'Capture Image';
+        hiddenInput.type = 'text';
+        hiddenInput.id = 'capturedImageData';
+        hiddenInput.style.display = 'none';
+
         captureButton.onclick = function() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedImage.src = canvas.toDataURL('image/png');
+            let imageData = canvas.toDataURL('image/png');
+            capturedImage.src = imageData;
+            hiddenInput.value = imageData;
             document.getElementById('captured-container').innerHTML = '';
             document.getElementById('captured-container').appendChild(capturedImage);
+            document.getElementById('captured-container').appendChild(hiddenInput);
         };
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -38,6 +46,4 @@ def camera_input():
     <div id="camera-container"></div>
     <div id="captured-container"></div>
     """
-    components.html(camera_html, height=400)
-
-    return None
+    return components.html(camera_html, height=400)

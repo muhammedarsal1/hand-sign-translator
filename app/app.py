@@ -6,7 +6,7 @@ import base64
 from predictor import predict_sign
 from camera_component import camera_input
 
-# Force TensorFlow to use CPU (Fixes GPU error)
+# Force TensorFlow to use CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 def process_image(image_data):
@@ -33,7 +33,7 @@ def process_image(image_data):
 def main():
     st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
     st.title("🤟 Hand Sign Language Translator")
-    st.write("Show a hand sign to the camera, then press 'Translate' to see the result.")
+    st.write("Show a hand sign to the camera, then press 'Capture Image' and 'Translate' to see the result.")
 
     # Initialize session state variables
     if "captured_image" not in st.session_state:
@@ -41,28 +41,27 @@ def main():
     if "predicted_letter" not in st.session_state:
         st.session_state.predicted_letter = ""
 
-    # Camera Component (Capturing Image)
-    st.write("📷 **Camera Feed:**")
-    image_data = camera_input()  # Show camera input
+    # Display Camera Component
+    image_data = camera_input()
 
-    # **Fix: Ensure image is saved in session state when captured**
-    if image_data:
-        st.session_state.captured_image = image_data  # Store captured image
-        st.image(image_data, caption="📸 Captured Image", use_column_width=True)
+    # Capture Image Button
+    if st.button("Capture Image"):
+        if image_data:
+            st.session_state.captured_image = image_data  # Store image in session state
+            st.image(image_data, caption="📸 Captured Image", use_column_width=True)
+        else:
+            st.error("❌ No image captured! Please try again.")
 
-    # Show Translate button **only if image is captured**
+    # Translate Button (Only Appears After Capturing an Image)
     if st.session_state.captured_image:
         if st.button("Translate Sign"):
-            st.write("🔄 Processing...")  # Show loading message
+            st.write("🔄 Processing...")
             processed_image = process_image(st.session_state.captured_image)
 
             if processed_image is not None:
-                prediction = predict_sign(processed_image)  # Predict hand sign
-                st.session_state.predicted_letter = prediction  # Store prediction in session state
-
-    # Display Translation Below Camera **(Fix UI)**
-    if st.session_state.predicted_letter:
-        st.subheader(f"🔠 **Predicted Sign: {st.session_state.predicted_letter}**")
+                prediction = predict_sign(processed_image)
+                st.session_state.predicted_letter = prediction
+                st.subheader(f"🔠 **Predicted Sign: {prediction}**")
 
 if __name__ == "__main__":
     main()
