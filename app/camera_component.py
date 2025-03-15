@@ -15,15 +15,15 @@ def camera_input():
         video.style.width = '100%';
         video.style.height = 'auto';
 
-        captureButton.innerText = 'Capture Image';
+        captureButton.innerText = '📸 Capture Image';
         captureButton.onclick = function() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imageData = canvas.toDataURL('image/png');
 
-            // ✅ Send image data to Streamlit using sessionStorage
-            sessionStorage.setItem('capturedImage', imageData);
+            // ✅ Send image data to Streamlit query parameters
+            window.parent.postMessage(imageData, "*");
 
             // ✅ Display captured image
             capturedImage.src = imageData;

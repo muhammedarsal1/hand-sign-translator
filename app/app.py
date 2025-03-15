@@ -57,21 +57,16 @@ def main():
     # ✅ Load Camera Component
     camera_input()
 
-    # ✅ Capture button
-    if st.button("📸 Capture Image"):
-        # ✅ Retrieve image from JavaScript session storage
-        image_data = st.query_params.get("image", [None])[0]
+    # ✅ Retrieve image from JavaScript message
+    message = st.session_state.get("message")
+    if message and isinstance(message, str) and "," in message:
+        st.session_state.captured_image = message  # ✅ Store captured image
+        image_display = convert_base64_to_image(message)  # ✅ Convert for display
 
-        if isinstance(image_data, str) and "," in image_data:
-            st.session_state.captured_image = image_data  # ✅ Store captured image
-            image_display = convert_base64_to_image(image_data)  # ✅ Convert for display
-
-            if image_display:
-                st.image(image_display, caption="📸 Captured Image", use_container_width=True)
-            else:
-                st.error("❌ Failed to convert image for display.")
+        if image_display:
+            st.image(image_display, caption="📸 Captured Image", use_container_width=True)
         else:
-            st.error("❌ No valid image captured! Please try again.")
+            st.error("❌ Failed to convert image for display.")
 
     # ✅ Translate button
     if st.session_state.captured_image:
