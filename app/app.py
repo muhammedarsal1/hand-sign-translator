@@ -7,10 +7,14 @@ from camera_component import camera_input
 
 def process_image(image_data):
     """Convert base64 image to numpy array and process it."""
-    image_bytes = base64.b64decode(image_data.split(',')[1])
-    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-    return image
+    try:
+        image_bytes = base64.b64decode(image_data.split(',')[1])
+        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        return image
+    except Exception as e:
+        st.error(f"Error processing image: {e}")
+        return None
 
 def main():
     st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
@@ -20,8 +24,10 @@ def main():
     # Initialize session state for image storage
     if "captured_image" not in st.session_state:
         st.session_state.captured_image = None
+    if "prediction" not in st.session_state:
+        st.session_state.prediction = None
 
-    # Camera Component
+    # Capture Image
     image_data = camera_input()
 
     if image_data:
@@ -32,8 +38,5 @@ def main():
     if st.session_state.captured_image:
         if st.button("Translate Sign"):
             processed_image = process_image(st.session_state.captured_image)
-            prediction = predict_sign(processed_image)  # Get prediction
-            st.subheader(f"🔠 Predicted Sign: **{prediction}**")
-
-if __name__ == "__main__":
-    main()
+            if processed_image is not None:
+                st.session_state.prediction = predict_sign(processed_image)  # Sto
