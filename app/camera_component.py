@@ -1,21 +1,28 @@
-import streamlit as st
 import streamlit.components.v1 as components
 
-# HTML + JavaScript code for accessing the camera
-camera_html = """
+def camera_input():
+    camera_html = """
     <script>
-        async function startCamera() {
-            const video = document.getElementById("videoElement");
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-        }
-        window.onload = startCamera;
+        let video = document.createElement('video');
+        video.setAttribute('autoplay', '');
+        video.setAttribute('playsinline', '');
+        video.style.width = '100%';
+        video.style.height = 'auto';
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error("Camera not accessible:", error);
+                document.getElementById("camera-container").innerText = "🚨 Camera not accessible. Please enable camera permissions.";
+            });
+
+        document.getElementById("camera-container").appendChild(video);
     </script>
-    <video id="videoElement" autoplay playsinline style="width: 100%;"></video>
-"""
+    <div id="camera-container"></div>
+    """
 
-# Streamlit app
-def show_camera():
-    st.markdown("### 📷 Live Camera Feed")
-    components.html(camera_html, height=400)
+    components.html(camera_html, height=300)
 
+    return None  # Streamlit does not support direct webcam capture in pure Python
