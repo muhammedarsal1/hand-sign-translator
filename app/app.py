@@ -11,6 +11,9 @@ from camera_component import camera_input
 # Force TensorFlow to use CPU (Fixes CUDA error)
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
+# Listen for images sent from JavaScript
+image_data = st.experimental_get_query_params().get("image", [None])[0]
+
 def process_image(image_data):
     """Convert base64 image to numpy array and process it."""
     try:
@@ -53,7 +56,7 @@ def main():
         st.session_state.captured_image = None
 
     # Camera Component
-    image_data = camera_input()
+    camera_input()
 
     # Capture button
     if st.button("Capture Image"):
