@@ -4,10 +4,9 @@ import numpy as np
 import cv2
 import base64
 import tensorflow as tf
-from predictor import predict_sign
-from camera_component import camera_input  # ✅ Correct import, works now
 from PIL import Image
-
+from predictor import predict_sign
+from camera_component import camera_input
 
 # ✅ Ensure set_page_config is the first Streamlit command
 st.set_page_config(page_title="Hand Sign Language Translator", layout="wide")
@@ -20,54 +19,33 @@ if "captured_image" not in st.session_state:
     st.session_state.captured_image = None
 
 def process_image(image_data):
-    """Convert base64 image to numpy array and process it."""
+    """Convert base64 image to numpy array and preprocess for the model."""
     try:
-        if not isinstance(image_data, str) or "," not in image_data:
-            st.error("❌ Invalid image data received!")
-            return None
-
-        # Decode Base64 Image
         image_bytes = base64.b64decode(image_data.split(',')[1])
         image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-        if image is None:
-            st.error("❌ Failed to decode image.")
-            return None
-
+        image = cv2.imdecode(image_array, cv2.IMREAD_GRAYSCALE)  # ✅ Ensure grayscale format
+        image = cv2.resize(image, (64, 64))  # ✅ Resize to match model input size
+        image = image / 255.0  # ✅ Normalize pixel values
+        image = np.expand_dims(image, axis=-1)  # ✅ Add channel dimension for model
         return image
     except Exception as e:
-        st.error(f"❌ Error processing image: {e}")
-        return None
-
-def convert_base64_to_image(image_data):
-    """Convert base64 string to PIL Image for Streamlit display."""
-    try:
-        if not isinstance(image_data, str) or "," not in image_data:
-            return None
-
-        image_bytes = base64.b64decode(image_data.split(',')[1])
-        return Image.open(io.BytesIO(image_bytes))
-    except Exception as e:
+        st.error(f"❌ Image processing error: {e}")
         return None
 
 def main():
     st.title("🤟 Hand Sign Language Translator")
-    st.write("Show a hand sign to the camera, capture an image, and translate it.")
+    st.write("Show a hand sign to the camera, capture an image, and press 'Translate'.")
 
-    # ✅ Load Camera Component
-    camera_input()
+    # Camera Input
+    image_data = camera_input()
 
-    # ✅ Retrieve image from JavaScript message
-    message = st.session_state.get("message")
-    if message and isinstance(message, str) and "," in message:
-        st.session_state.captured_image = message  # ✅ Store captured image
-        image_display = convert_base64_to_image(message)  # ✅ Convert for display
-
-        if image_display:
-            st.image(image_display, caption="📸 Captured Image", use_container_width=True)
+    # ✅ Capture button
+    if st.button("📸 Capture Image"):
+        if image_data and "," in image_data:
+            st.session_state.captured_image = image_data
+            st.image(image_data, caption="📸 Captured Image", use_container_width=True)
         else:
-            st.error("❌ Failed to convert image for display.")
+            st.error("❌ No valid image captured! Please try again.")
 
     # ✅ Translate button
     if st.session_state.captured_image:
